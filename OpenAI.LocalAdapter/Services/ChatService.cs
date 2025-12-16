@@ -53,7 +53,11 @@ namespace OpenAI.LocalAdapter.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
+#if NETSTANDARD2_1
+                    var errorContent = await response.Content.ReadAsStringAsync();
+#else
                     var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+#endif
                     _logger?.LogError("Chat completion request failed: {StatusCode} - {Error}",
                         response.StatusCode, errorContent);
 
@@ -121,14 +125,22 @@ namespace OpenAI.LocalAdapter.Services
 
             if (!response.IsSuccessStatusCode)
             {
+#if NETSTANDARD2_1
+                var errorContent = await response.Content.ReadAsStringAsync();
+#else
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+#endif
                 _logger?.LogError("Streaming chat completion request failed: {StatusCode} - {Error}",
                     response.StatusCode, errorContent);
                 throw new HttpRequestException(
                     $"API request failed with status {response.StatusCode}: {errorContent}");
             }
 
+#if NETSTANDARD2_1
+            using var stream = await response.Content.ReadAsStreamAsync();
+#else
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+#endif
             using var reader = new StreamReader(stream);
 
             string? line;

@@ -409,3 +409,84 @@ simple-console-RPG/apikey.txt
 
 # Local History for Visual Studio
 .localhistory/
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+*.mo
+*.pot
+*.log
+local_settings.py
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+target/
+.ipynb_checkpoints
+.python-version
+celerybeat-schedule
+*.sage.py
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.spyderproject
+.spyproject
+.ropeproject
+.mr.developer.cfg
+.project
+.pydevproject
+.settings/
+.mypy_cache/
+
+# NuGet packages
+*.nupkg
+nupkgs/
+
+# JetBrains IDEs
+.idea/
+*.sln.iml
+
+# VSCode
+.vscode/
+
+# Temporary files
+*.tmp
+*.temp
+*~

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>OpenAI.LocalAdapter</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Text RPG Adventure Contributors</Authors>
+    <Description>A local adapter for OpenAI API that enables running LLMs locally with LM Studio, Ollama, and other backends while maintaining OpenAI API compatibility.</Description>
+    <PackageTags>openai;llm;local;lm-studio;ollama;ai;chatgpt</PackageTags>
+    <RepositoryUrl>https://github.com/St5mesh/text-rpg-adventure</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

@@ -13,6 +13,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional, AsyncGenerator
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 import httpx
 import yaml
@@ -100,12 +101,36 @@ def load_config(config_path: str = "config.yaml") -> ProxyConfig:
 # Global configuration
 config = load_config()
 
+# Global HTTP client
+http_client: Optional[httpx.AsyncClient] = None
 
-# Initialize FastAPI app
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan - startup and shutdown"""
+    global http_client
+    # Startup
+    http_client = httpx.AsyncClient(
+        timeout=httpx.Timeout(config.backends["primary"].timeout),
+        limits=httpx.Limits(max_keepalive_connections=10, max_connections=100)
+    )
+    logger.info("OpenAI Local Proxy started")
+    logger.info(f"Forwarding requests to: {config.backends['primary'].url}")
+    
+    yield
+    
+    # Shutdown
+    if http_client:
+        await http_client.aclose()
+    logger.info("OpenAI Local Proxy stopped")
+
+
+# Initialize FastAPI app with lifespan
 app = FastAPI(
     title="OpenAI Local Proxy",
     description="Local proxy for OpenAI API compatible with LM Studio and other local LLM backends",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 
@@ -118,31 +143,6 @@ if config.server.cors_enabled:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-
-# HTTP client for backend requests
-http_client: Optional[httpx.AsyncClient] = None
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize HTTP client on startup"""
-    global http_client
-    http_client = httpx.AsyncClient(
-        timeout=httpx.Timeout(config.backends["primary"].timeout),
-        limits=httpx.Limits(max_keepalive_connections=10, max_connections=100)
-    )
-    logger.info("OpenAI Local Proxy started")
-    logger.info(f"Forwarding requests to: {config.backends['primary'].url}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close HTTP client on shutdown"""
-    global http_client
-    if http_client:
-        await http_client.aclose()
-    logger.info("OpenAI Local Proxy stopped")
 
 
 # Helper Functions
@@ -240,8 +240,8 @@ def transform_response_body(body: Dict[str, Any], original_model: str) -> Dict[s
     if "created" not in transformed:
         transformed["created"] = int(time.time())
     
-    # Add usage stats if missing and enabled
-    if config.response.get("add_usage_stats", True) and "usage" not in transformed:
+    # Add usage stats if missing
+    if "usage" not in transformed:
         if "choices" in transformed and len(transformed["choices"]) > 0:
             # Estimate token usage (rough approximation)
             content = ""

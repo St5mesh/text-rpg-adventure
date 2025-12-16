@@ -1,0 +1,77 @@
+# OpenAI Local Proxy Configuration
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8080
+  workers: 1
+  log_level: "info"
+  cors_enabled: true
+  cors_origins:
+    - "*"
+
+# Backend Configuration
+backends:
+  primary:
+    name: "LM Studio"
+    url: "http://10.50.10.14:1234"
+    enabled: true
+    timeout: 300
+    max_retries: 3
+    retry_delay: 1
+  
+  # Optional fallback backends
+  # fallback:
+  #   name: "Ollama"
+  #   url: "http://localhost:11434"
+  #   enabled: false
+  #   timeout: 120
+
+# Model Mapping Configuration
+# Maps OpenAI model names to local model names
+model_mapping:
+  "gpt-3.5-turbo": "llama-3.1-instruct-13b"
+  "gpt-3.5-turbo-16k": "llama-3.1-instruct-13b"
+  "gpt-4": "llama-3.1-instruct-13b"
+  "gpt-4-turbo": "llama-3.1-instruct-13b"
+  "gpt-4-turbo-preview": "llama-3.1-instruct-13b"
+  "gpt-4o": "llama-3.1-instruct-13b"
+  "gpt-4o-mini": "llama-3.1-instruct-13b"
+  "text-davinci-003": "llama-3.1-instruct-13b"
+  "text-davinci-002": "llama-3.1-instruct-13b"
+
+# Default model for requests without a model specified
+default_model: "llama-3.1-instruct-13b"
+
+# Authentication Configuration
+authentication:
+  enabled: false
+  # If enabled, only these API keys will be accepted
+  valid_api_keys:
+    - "sk-local-development-key"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"  # json or text
+  include_request_body: false  # Set to true for debugging
+  include_response_body: false  # Set to true for debugging
+
+# Request/Response Configuration
+request:
+  max_content_length: 10485760  # 10MB
+  default_timeout: 300  # 5 minutes
+  
+response:
+  add_usage_stats: true
+  normalize_format: true
+
+# Feature Flags
+features:
+  streaming: true
+  embeddings: true
+  completions: true
+  chat_completions: true
+  models_endpoint: true
+  health_check: true
+  metrics: false  # Prometheus metrics (optional)

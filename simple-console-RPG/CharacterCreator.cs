@@ -1,14 +1,14 @@
-﻿using simple_console_RPG;
+using simple_console_RPG;
 
 //using Internal;
 public class CharacterStats
 {
     // character basics
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public int StartingClass { get; set; }
 
-    public string CharacterClass { get; set; }
+    public string CharacterClass { get; set; } = null!;
 
     public int StartingLevel { get; set; }
 
@@ -39,129 +39,148 @@ public class CharacterStats
 
     public void PrintOptions()
     {
+        Task.Delay(1000).Wait();
         Console.WriteLine("Choose your starting class...");
-        Task.Delay(1000);
-        Console.WriteLine("1. Elf - +4 speed, +2 strength,"); // range; speed;
-        Task.Delay(1000);
+        Task.Delay(1000).Wait();
+        Console.WriteLine("1. Elf - +4 speed, +2 strength,");
+        Task.Delay(1000).Wait();
         Console.WriteLine("2. Mage - +6 magic"); // magic;
-        Task.Delay(1000);
+        Task.Delay(1000).Wait();
         Console.WriteLine("3. Hero - +5 strength, +2 speed"); // strength; speed;
-        Task.Delay(1000);
+        Task.Delay(1000).Wait();
         Console.WriteLine("4. Hobbit - +6 luck"); // luck;
-        Task.Delay(1000);
+        Task.Delay(1000).Wait();
         Console.WriteLine("5. Dwarf - +8 strength;"); // strengh;
-        Task.Delay(1000);
+        Task.Delay(1000).Wait();
         Console.WriteLine("6. Barbarian - +1 HP, +5 strength"); // hp; strength;
+        Task.Delay(1000).Wait();
+        Console.WriteLine("7. Theif - +5 speed, +1 luck"); // speed; luck;
+        Console.WriteLine("Enter your choice: ");
+        string? input = Console.ReadLine() ?? string.Empty;
+        if (int.TryParse(input, out int classChoice))
+        {
+            StartingClass = classChoice;
+        }
+        else
+        {
+            StartingClass = 1; // Default to Elf
+        }
         Task.Delay(1000);
-        Console.WriteLine("7. Theif - +5 speed, +1 luck"); // speed; luck;        StartingClass = int.Parse(Console.ReadLine());
-        Task.Delay(1000);
-        StartingClass = int.Parse(Console.ReadLine());
         Console.WriteLine("\n");
     }
 
     public async Task<PlayerStats> CreateCharacter()
     {
         Console.WriteLine("Enter your character name ");
-        Name = Console.ReadLine();
+        Name = Console.ReadLine() ?? "Adventurer";
         Console.WriteLine("\n");
 
-        Task.Delay(1000);
+        Task.Delay(1000).Wait();
         Console.WriteLine($"Welcome {Name}! \n");
         PrintOptions();
 
-        if (StartingClass == 1)
+        // Create PlayerStats based on class selection
+        PlayerStats playerStats = CreateClassStats();
+        if (playerStats == null)
         {
-            CharacterClass = "Elf";
-            PlayerStats playerStats = new PlayerStats();
-            playerStats.Speed = 4;
-            playerStats.Strength = 2;
-
-            Console.WriteLine("You have chosen Elf! \n");
-
-            var pointsToSpend = 10;
-            int pointsRemaining = 10;
-            var stats =
-                new [] { "Health", "Speed", "Strength", "Magic", "Luck" };
-            var statsValues = new int[stats.Length];
-
-            Task.Delay(1000);
-            Console.WriteLine($"You have {pointsToSpend} points to spend. \n");
-            Task.Delay(2000);
-            Console.WriteLine("These are your stats!");
-            Task.Delay(3000);
-            Console.WriteLine($"Health: {playerStats.Health}");
-            Console.WriteLine($"Speed: {playerStats.Speed}");
-            Console.WriteLine($"Strength: {playerStats.Strength}");
-            Console.WriteLine($"Magic: {playerStats.Magic}");
-            Console.WriteLine($"Luck: {playerStats.Luck}");
-
-            //AdventureGenerator story = new AdventureGenerator();
-            for (int i = 0; i < stats.Length; i++)
-            {
-                Console.Write($"{stats[i]}: ");
-                statsValues[i] += int.Parse(Console.ReadLine());
-                pointsRemaining = pointsToSpend -= statsValues[i];
-
-                if (pointsRemaining == 0 || pointsRemaining < 0)
-                {
-                    Console.WriteLine($"You have ran out of points \n");
-                    break;
-                }
-
-                Console
-                    .WriteLine($"Remaining points to spend: {
-                        pointsRemaining} \n");
-            }
-
-            playerStats.UpdateStats (statsValues, Name, CharacterClass);
-
-            Task.Delay(1000);
-            Console.WriteLine("These are your stats! \n");
-
-            Task.Delay(1000);
-            Console.WriteLine($"Health: {playerStats.Health}");
-
-            Task.Delay(1000);
-            Console.WriteLine($"Speed: {playerStats.Speed}");
-
-            Task.Delay(1000);
-            Console.WriteLine($"Strength: {playerStats.Strength}");
-
-            Task.Delay(1000);
-            Console.WriteLine($"Magic: {playerStats.Magic}");
-
-            Task.Delay(1000);
-            Console.WriteLine($"Luck: {playerStats.Luck} \n");
-
-            RollDiceOptions();
-            Task.Delay(1000).Wait();
-            int diceRollOne = RollDice();
-            int diceRolltwo = RollDice();
-            int diceRollthree = RollDice();
-
-            Console.WriteLine("one moment while we create your story... \n");
-
-            //Console.WriteLine("What will you do now?... (chapter two) \n");
-            //string firstChoice = Console.ReadLine(); // enter 3
-            //string chapterThree = story.GenerateAdventure(null, null, null, firstChoice, playerStats).Result;
-            //Console.WriteLine(chapterThree);
-            //Console.WriteLine("What will you do now?... (chapter three) \n");
-            //string secondChoice = Console.ReadLine(); // enter 4
-            //string chapterFour = story.GenerateAdventure(null, null, null, secondChoice, null).Result;
-            //Console.WriteLine("What will you do now?... (chapter four) \n");
-            //string thirdChoice = Console.ReadLine(); // chapter four
-            //string chapterFive = story.GenerateAdventure(null, null, null, thirdChoice, null).Result;
-            //Console.WriteLine(chapterFive);
-            //Console.WriteLine(chapterFour);
-            return playerStats;
+            Console.WriteLine("Invalid class selection, defaulting to Elf");
+            StartingClass = 1;
+            playerStats = CreateClassStats();
         }
 
-        return null;
+        // Stat point distribution
+        var pointsToSpend = 10;
+        int pointsRemaining = 10;
+        var stats = new[] { "Health", "Speed", "Strength", "Magic", "Luck" };
+        var statsValues = new int[stats.Length];
+
+        Task.Delay(1000).Wait();
+        Console.WriteLine($"You have {pointsToSpend} points to spend. \n");
+        Task.Delay(2000).Wait();
+        Console.WriteLine("These are your stats!");
+        Task.Delay(3000).Wait();
+        Console.WriteLine($"Health: {playerStats.Health}");
+        Console.WriteLine($"Speed: {playerStats.Speed}");
+        Console.WriteLine($"Strength: {playerStats.Strength}");
+        Console.WriteLine($"Magic: {playerStats.Magic}");
+        Console.WriteLine($"Luck: {playerStats.Luck}");
+
+        for (int i = 0; i < stats.Length; i++)
+        {
+            Console.Write($"{stats[i]}: ");
+            string? input = Console.ReadLine();
+            if (int.TryParse(input, out int value))
+            {
+                statsValues[i] += value;
+            }
+            pointsRemaining = pointsToSpend -= statsValues[i];
+
+            if (pointsRemaining == 0 || pointsRemaining < 0)
+            {
+                Console.WriteLine($"You have ran out of points \n");
+                break;
+            }
+
+            Console.WriteLine($"Remaining points to spend: {pointsRemaining} \n");
+        }
+
+        playerStats.UpdateStats(statsValues, Name, CharacterClass);
+
+        Task.Delay(1000).Wait();
+        Console.WriteLine("These are your stats! \n");
+        Task.Delay(1000).Wait();
+        Console.WriteLine($"Health: {playerStats.Health}");
+        Task.Delay(1000).Wait();
+        Console.WriteLine($"Speed: {playerStats.Speed}");
+        Task.Delay(1000).Wait();
+        Console.WriteLine($"Strength: {playerStats.Strength}");
+        Task.Delay(1000).Wait();
+        Console.WriteLine($"Magic: {playerStats.Magic}");
+        Task.Delay(1000).Wait();
+        Console.WriteLine($"Luck: {playerStats.Luck} \n");
+
+        RollDiceOptions();
+        Task.Delay(1000).Wait();
+        _ = RollDice();
+        _ = RollDice();
+        _ = RollDice();
+
+        Console.WriteLine("one moment while we create your story... \n");
+
+        return playerStats;
     }
 
-    public int RollDice()
+    private PlayerStats? CreateClassStats()
     {
-        return new Random().Next(0, 9);
+        var stats = StartingClass switch
+        {
+            1 => new PlayerStats { Speed = 4, Strength = 2 },
+            2 => new PlayerStats { Magic = 6 },
+            3 => new PlayerStats { Strength = 5, Speed = 2 },
+            4 => new PlayerStats { Luck = 6 },
+            5 => new PlayerStats { Strength = 8 },
+            6 => new PlayerStats { Health = 1, Strength = 5 },
+            7 => new PlayerStats { Speed = 5, Luck = 1 },
+            _ => null
+        };
+        
+        if (stats != null)
+        {
+            CharacterClass = StartingClass switch
+            {
+                1 => "Elf",
+                2 => "Mage",
+                3 => "Hero",
+                4 => "Hobbit",
+                5 => "Dwarf",
+                6 => "Barbarian",
+                7 => "Thief",
+                _ => "Unknown"
+            };
+            Console.WriteLine($"You have chosen {CharacterClass}! \n");
+        }
+        
+        return stats;
     }
 
     public void RollDiceOptions()
@@ -169,7 +188,7 @@ public class CharacterStats
         Console.WriteLine("Would you like to roll the dice...");
         Console.WriteLine("2 - for yes");
         Console.WriteLine("1 - for no");
-        RollDiceChoice = Console.ReadLine();
+        RollDiceChoice = Console.ReadLine() ?? string.Empty;
         if (RollDiceChoice == "2")
         {
             Console.WriteLine("\n");
@@ -178,5 +197,10 @@ public class CharacterStats
         {
             Console.WriteLine("you suck");
         }
+    }
+
+    public int RollDice()
+    {
+        return new Random().Next(0, 9);
     }
 }

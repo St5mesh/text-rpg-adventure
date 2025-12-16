@@ -7,8 +7,8 @@ public class PlayerStats
     public int Strength { get; set; }
     public int Magic { get; set; }
     public int Luck { get; set; }
-    public string Name { get; set; }
-    public string PlayerClass { get; set; }
+    public string Name { get; set; } = null!;
+    public string PlayerClass { get; set; } = null!;
 
     public void UpdateStats(int[] statsValues, string playerName, string playerClass)
     {

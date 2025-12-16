@@ -18,15 +18,15 @@ public class AdventureGenerator
         Default
     }
 
-    private string _setting { get; set; }
-    private string _enemyAI { get; set; }
-    private string _goal { get; set; }
+    private string _setting { get; set; } = null!;
+    private string _enemyAI { get; set; } = null!;
+    private string _goal { get; set; } = null!;
     private bool _chapterOneComplete { get; set; }
     private bool _chapterTwoComplete { get; set; }
     private bool _chapterThreeComplete { get; set; }
     private bool _chapterFourComplete { get; set; }
-    private string enemyGoal { get; set; }
-    private string _combatDescription { get; set; }
+    private string enemyGoal { get; set; } = null!;
+    private string _combatDescription { get; set; } = null!;
 
     public int Health { get; set; }
 

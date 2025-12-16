@@ -2,6 +2,8 @@
 using System.Numerics;
 using Microsoft.Extensions.Options;
 using OpenAI_API;
+using OpenAI_API.Chat;
+using OpenAI_API.Models;
 using simple_console_RPG;
 
 namespace simple_console_RPG
@@ -26,16 +28,16 @@ namespace simple_console_RPG
             Default
         }
 
-        private string _setting { get; set; }
-        private string _enemyAI { get; set; }
-        private string _enemyLeader { get; set; }
-        private string _goal { get; set; }
-        private string _chapterOneComplete { get; set; }
+        private string _setting { get; set; } = null!;
+        private string _enemyAI { get; set; } = null!;
+        private string _enemyLeader { get; set; } = null!;
+        private string _goal { get; set; } = null!;
+        private string _chapterOneComplete { get; set; } = null!;
         private bool _chapterTwoComplete { get; set; }
         private bool _chapterThreeComplete { get; set; }
         private bool _chapterFourComplete { get; set; }
-        private string enemyGoal { get; set; }
-        private string _combatDescription { get; set; }
+        private string enemyGoal { get; set; } = null!;
+        private string _combatDescription { get; set; } = null!;
 
         public int Health { get; set; }
 
@@ -59,11 +61,11 @@ namespace simple_console_RPG
 
         public int _fightChoice { get; set; }
 
-        public string _storyInto { get; set; }
-        public string _battleDetail { get; set; }
-        public string _bossEncounter1 { get; set; }
-        public string _bossEncounter2 { get; set; }
-        public string _npcEncounter1 { get; set; }
+        public string _storyInto { get; set; } = null!;
+        public string _battleDetail { get; set; } = null!;
+        public string _bossEncounter1 { get; set; } = null!;
+        public string _bossEncounter2 { get; set; } = null!;
+        public string _npcEncounter1 { get; set; } = null!;
 
 
 
@@ -168,14 +170,18 @@ namespace simple_console_RPG
 
 
 
-        private PlayerStats newPlayer;
+        private PlayerStats newPlayer = null!;
 
         public void PlayerChoice()
         {
 
             Console.WriteLine("3 - for yes");
             Console.WriteLine("4 - for no");
-            FightChoice = int.Parse(Console.ReadLine());
+            string? input = Console.ReadLine();
+            if (int.TryParse(input, out int choice))
+            {
+                FightChoice = choice;
+            }
             if (FightChoice == 3)
             {
                 Console.WriteLine("\n");
@@ -197,19 +203,81 @@ namespace simple_console_RPG
 
 
 
-public async Task<ChatResult> CreateChatCompletionAsync(params ChatRequest[] messages) 
+private async Task<ChatResult> CreateChatCompletionAsync(string userPrompt) 
 {
-var result = await api.Chat.CreateChatCompletionAsync(new ChatRequest()
-{
-    Model = Model.ChatGPTTurbo,
-    Temperature = 0.1,
-    MaxTokens = 50,
-    Messages = new ChatMessage[] {
-            new ChatMessage(ChatMessageRole.User, "Hello!")
+    try
+    {
+        // Load API key and initialize client
+        // Try multiple paths: current dir, project dir, and bin dir
+        string[] possiblePaths = {
+            "apikey.txt",
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "apikey.txt"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "apikey.txt"),
+            Path.Combine(Directory.GetCurrentDirectory(), "apikey.txt")
+        };
+        
+        string apikeyFilePath = possiblePaths.FirstOrDefault(p => File.Exists(p)) 
+            ?? throw new FileNotFoundException($"API key file not found. Checked: {string.Join(", ", possiblePaths)}");
+        
+        string apiKey = File.ReadAllText(apikeyFilePath).Trim();
+        
+        // Check if using placeholder key
+        if (apiKey.StartsWith("sk-test-") || apiKey.Contains("placeholder"))
+        {
+            Console.WriteLine("\n⚠️ Warning: Using placeholder API key. Story generation requires a valid OpenAI API key.");
+            Console.WriteLine("To use the story generation feature:");
+            Console.WriteLine("  1. Get your API key from https://platform.openai.com/account/api-keys");
+            Console.WriteLine("  2. Replace the placeholder in apikey.txt with your real key\n");
+            
+            // Return a mock/default response
+            var mockResult = new ChatResult();
+            mockResult.Choices = new List<ChatChoice> 
+            { 
+                new ChatChoice { Message = new ChatMessage(ChatMessageRole.Assistant, "Your adventure awaits in the " + Setting + "...") } 
+            };
+            return mockResult;
         }
-});
-			return CreateChatCompletionAsync(request);       
-             }
+        
+        OpenAIAPI api = new OpenAIAPI(apiKey);
+
+        var result = await api.Chat.CreateChatCompletionAsync(new ChatRequest()
+        {
+            Model = Model.ChatGPTTurbo,
+            Temperature = 0.1,
+            MaxTokens = 50,
+            Messages = new ChatMessage[] {
+                new ChatMessage(ChatMessageRole.User, userPrompt)
+            }
+        });
+        return result;
+    }
+    catch (System.Security.Authentication.AuthenticationException authEx)
+    {
+        Console.WriteLine("\n❌ Authentication Error: Invalid API key.");
+        Console.WriteLine("Please check your apikey.txt file and ensure it contains a valid OpenAI API key.");
+        Console.WriteLine("Get your key at: https://platform.openai.com/account/api-keys\n");
+        
+        // Return mock response so game can continue
+        var mockResult = new ChatResult();
+        mockResult.Choices = new List<ChatChoice> 
+        { 
+            new ChatChoice { Message = new ChatMessage(ChatMessageRole.Assistant, "Your adventure begins in the " + Setting + "...") } 
+        };
+        return mockResult;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\n❌ Error generating story: {ex.Message}");
+        
+        // Return mock response so game can continue
+        var mockResult = new ChatResult();
+        mockResult.Choices = new List<ChatChoice> 
+        { 
+            new ChatChoice { Message = new ChatMessage(ChatMessageRole.Assistant, "Your adventure continues in the " + Setting + "...") } 
+        };
+        return mockResult;
+    }
+}
 
         public async Task<StoryObjects> Intro(Task<PlayerStats> player)
         {
@@ -221,15 +289,6 @@ var result = await api.Chat.CreateChatCompletionAsync(new ChatRequest()
 
             // randomizer
             int random = new Random().Next(0, 10);
-
-            // api junk
-            string apikeyFilePath = "apikey.txt";
-            string text = File.ReadAllText(apikeyFilePath);
-
-            OpenAIAPI api = new OpenAIAPI(text);
-            //var chat = api.Chat.CreateConversation();
-            
-            
 
             // story helper classes
             Grammar grammar = new Grammar();
@@ -271,8 +330,8 @@ var result = await api.Chat.CreateChatCompletionAsync(new ChatRequest()
 
             var storyparam = storyparams.TemplateForStory(Setting, EnemyAi, enemyElemental[random], EnemyGoal, Goal);
 
-            var res = CreateChatCompletionAsync(storyparam);
-            Console.WriteLine(res);
+            var res = await CreateChatCompletionAsync(storyparam);
+            Console.WriteLine(res?.ToString() ?? "No response received");
 
 
             // USE AS "GROUNDING" FOR SETTING THE STAGE
